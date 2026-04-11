@@ -1,0 +1,20 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BlogRoutes = void 0;
+const express_1 = __importDefault(require("express"));
+const multer_config_1 = require("../../config/multer.config");
+const checkAuth_1 = require("../../middlewares/checkAuth");
+const validateRequest_1 = require("../../middlewares/validateRequest");
+const user_interface_1 = require("../user/user.interface");
+const blog_controller_1 = require("./blog.controller");
+const blog_validation_1 = require("./blog.validation");
+const router = express_1.default.Router();
+router.get("/", blog_controller_1.BlogController.getAllBlog);
+router.post("/create", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), multer_config_1.multerUpload.single("file"), (0, validateRequest_1.validateRequest)(blog_validation_1.createBlogZodSchema), blog_controller_1.BlogController.createBlog);
+router.get("/:slug", blog_controller_1.BlogController.getSingleBlog);
+router.patch("/:id", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), multer_config_1.multerUpload.single("file"), (0, validateRequest_1.validateRequest)(blog_validation_1.updateBlogZodSchema), blog_controller_1.BlogController.updateBlog);
+router.delete("/:id", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), blog_controller_1.BlogController.deleteBlog);
+exports.BlogRoutes = router;

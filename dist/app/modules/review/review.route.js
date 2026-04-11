@@ -1,0 +1,22 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ReviewRoutes = void 0;
+const express_1 = __importDefault(require("express"));
+const review_validation_1 = require("./review.validation");
+const review_controller_1 = require("./review.controller");
+const checkAuth_1 = require("../../middlewares/checkAuth");
+const validateRequest_1 = require("../../middlewares/validateRequest");
+const user_interface_1 = require("../user/user.interface");
+const router = express_1.default.Router();
+router.get("/", review_controller_1.ReviewController.getAllReviews);
+router.post("/create", (0, checkAuth_1.checkAuth)(user_interface_1.Role.TOURIST), (0, validateRequest_1.validateRequest)(review_validation_1.createReviewZodSchema), review_controller_1.ReviewController.createReview);
+router.get("/tour/:tourId", review_controller_1.ReviewController.getReviewsByTour);
+router.get("/guide/:guideId", review_controller_1.ReviewController.getReviewsByGuide);
+router.get("/tourist/:touristId", review_controller_1.ReviewController.getReviewsByTourist);
+router.get("/me", (0, checkAuth_1.checkAuth)(user_interface_1.Role.TOURIST), review_controller_1.ReviewController.getMyReviews);
+router.patch("/:id", (0, checkAuth_1.checkAuth)(user_interface_1.Role.TOURIST), (0, validateRequest_1.validateRequest)(review_validation_1.updateReviewZodSchema), review_controller_1.ReviewController.updateReview);
+router.delete("/:id", (0, checkAuth_1.checkAuth)(user_interface_1.Role.TOURIST), review_controller_1.ReviewController.deleteReview);
+exports.ReviewRoutes = router;

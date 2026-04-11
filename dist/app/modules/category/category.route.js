@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CategoryRoutes = void 0;
+const express_1 = require("express");
+const multer_config_1 = require("../../config/multer.config");
+const checkAuth_1 = require("../../middlewares/checkAuth");
+const validateRequest_1 = require("../../middlewares/validateRequest");
+const user_interface_1 = require("../user/user.interface");
+const category_validation_1 = require("./category.validation");
+const category_controller_1 = require("./category.controller");
+const router = (0, express_1.Router)();
+router.post("/create", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), multer_config_1.multerUpload.single("file"), (0, validateRequest_1.validateRequest)(category_validation_1.createCategorySchema), category_controller_1.CategoryController.createCategory);
+router.get("/", category_controller_1.CategoryController.getAllCategories);
+router.get("/:slug", category_controller_1.CategoryController.getSingleCategory);
+router.patch("/:id", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), multer_config_1.multerUpload.single("file"), (0, validateRequest_1.validateRequest)(category_validation_1.updateCategorySchema), category_controller_1.CategoryController.updateCategory);
+router.delete("/:id", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), category_controller_1.CategoryController.deleteCategory);
+exports.CategoryRoutes = router;

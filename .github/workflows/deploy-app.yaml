@@ -1,0 +1,96 @@
+# name: Deploy on EC2
+
+# on:
+#   push:
+#     branches: ["main"]
+#   pull_request:
+#     branches: ["main"]
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - name: Use Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: "24"
+
+#       - name: Install Dependencies
+#         run: npm install --frozen-lockfile
+
+#       - name: Build Project
+#         run: npm run build
+
+#   deploy:
+#     runs-on: ubuntu-latest
+#     needs: build
+
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - name: Use Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: "24"
+
+#       - name: Install Dependencies
+#         run: npm install --frozen-lockfile
+
+#       - name: Build Project
+#         run: npm run build
+
+#       # Configure SSH Safely
+#       - name: Configure SSH
+#         env:
+#           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+#         run: |
+#           mkdir -p ~/.ssh
+#           cat << 'EOF' > ~/.ssh/id_rsa
+#           ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+#           EOF
+#           chmod 600 ~/.ssh/id_rsa
+#           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+#       # Deploy to EC2
+#       - name: Deploy to EC2
+#         env:
+#           EC2_HOST: ${{ secrets.EC2_HOST }}
+#           EC2_USER: ${{ secrets.EC2_USER }}
+#         run: |
+#           # 1. Create deployment directory
+#           ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST "mkdir -p ~/app"
+
+#           # 2. Create the .env file locally from GitHub Secrets
+#           cat << 'EOF' > .env
+#           ${{ secrets.APP_ENVS }}
+#           EOF
+
+#           # 3. Copy files to EC2 instance (rsync will automatically copy the .env file we just made)
+#           rsync -avz -e "ssh -i ~/.ssh/id_rsa" \
+#             --exclude='.git' \
+#             --exclude='node_modules' \
+#             --exclude='.github' \
+#             . $EC2_USER@$EC2_HOST:~/app/
+
+#           # 4. Execute deployment commands safely
+#           ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
+#             # Safely load the fnm environment
+#             export PATH=$HOME/.local/share/fnm:$PATH
+#             eval "`fnm env`"
+            
+#             npm install -g pm2
+            
+#             cd ~/app
+            
+#             # Install production dependencies
+#             npm install --frozen-lockfile
+            
+#             # Restart or start the PM2 process
+#             pm2 restart nodejs-app || pm2 start dist/server.js --name nodejs-app
+            
+#             # Save the PM2 state
+#             pm2 save
+#           EOF
