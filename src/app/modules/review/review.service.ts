@@ -1,11 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Review } from "./review.model";
-import { Booking } from "../booking/booking.model";
 import httpStatus from "http-status-codes";
 import AppError from "../../errorHelpers/AppError";
 import { QueryBuilder } from "../../utils/QueryBuilder";
-import { BOOKING_STATUS } from "../booking/booking.interface";
 import mongoose from "mongoose";
 
 export const ReviewService = {
@@ -38,67 +37,9 @@ export const ReviewService = {
   //   return { data: review };
   // },
   async createReview(payload: any, userId: string) {
-    // 1. Start Mongoose Transaction
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    // Fetch Booking
-    const booking = await Booking.findById(payload.booking).session(session);
+ 
 
-    if (!booking) {
-      throw new AppError(httpStatus.NOT_FOUND, "Booking not found");
-    }
-
-    // Authorization and Status Checks
-    if (booking.user._id.toString() !== userId) {
-      throw new AppError(
-        httpStatus.FORBIDDEN,
-        "You cannot review this booking"
-      );
-    }
-
-    if (booking.status !== BOOKING_STATUS.COMPLETED) {
-      throw new AppError(
-        httpStatus.BAD_REQUEST,
-        "You can only review completed tours"
-      );
-    }
-
-    // --- IMPORTANT: Check for existing review (prevent double review) ---
-    if (booking.review) {
-      throw new AppError(
-        httpStatus.BAD_REQUEST,
-        "A review for this booking already exists."
-      );
-    }
-
-    // 2. Create the Review document within the transaction
-    const reviewArray = await Review.create([{
-      ...payload,
-      user: userId,
-      // Ensure you attach guide and tour IDs if they are not in the payload but needed on the Review model
-      guide: booking.guide,
-      tour: booking.tour,
-    }], { session });
-
-    const review = reviewArray[0];
-
-
-    // 3. Update the Booking document to link the new review ID
-    await Booking.findByIdAndUpdate(
-      booking._id,
-      { review: review._id }, // Add the review ID to the booking document
-      { new: true, runValidators: true, session }
-    );
-
-
-    // 4. (Optional but recommended) Update Tour Model average rating/count here
-
-
-    // 5. Commit Transaction
-    await session.commitTransaction();
-    session.endSession();
-
-    return { data: review };
+    return { data: null };
   },
 
   // Get all reviews for a tour (with filter, sort, pagination)

@@ -8,7 +8,6 @@ import { User } from "./user.model";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { userSearchableFields } from "./user.constant";
 import { Review } from "../review/review.model";
-import { Tour } from "../tour/tour.model";
 
 const createUser = async (payload: Partial<IUser>) => {
   const { email, password, ...rest } = payload;
@@ -384,61 +383,13 @@ const getGuideDetails = async (id: string) => {
   if (!user || user.role !== 'GUIDE') {
     throw new AppError(httpStatus.NOT_FOUND, "Guide not found.");
   }
-  // 2. Get Aggregated Review Statistics
-  const reviewStats = await Review.aggregate([
-    // Filter reviews only for this guide
-    { $match: { guide: user._id } },
-
-    // Group by guide ID to calculate statistics
-    {
-      $group: {
-        _id: "$guide",
-        review_count: { $sum: 1 },
-        avg_rating: { $avg: "$rating" },
-      }
-    },
-    // Project to format the output
-    {
-      $project: {
-        _id: 0,
-        review_count: 1,
-        avg_rating: { $round: ["$avg_rating", 2] }
-      }
-    }
-  ]);
-
-  // Fetch all Tours authored by this Guide
-  const guideTours = await Tour.find({ author: user._id }).lean(); // Use .lean() for easier modification
-
-  // 3. Prepare Stats
-  const stats = reviewStats[0] || { review_count: 0, avg_rating: 0.0 };
-
-  // 4. Inject Stats into Each Tour's Author Field
-  // We map over guideTours and inject the stats into the author field.
-  const toursWithStats = guideTours.map(tour => {
-    // Create a populated-like author object that includes the aggregated stats
-    const authorWithStats = {
-      ...user.toObject(), // Get the guide's basic profile data
-      review_count: stats.review_count,
-      avg_rating: stats.avg_rating,
-    };
-
-    return {
-      ...tour, // The rest of the tour data
-      author: authorWithStats, // Replace the simple author ID with the full object
-    };
-  });
-
 
   // 5. Merge Data for the Guide Profile
   const guideData = user.toObject(); // Convert Mongoose document to plain object
 
   return {
     data: {
-      ...guideData,
-      review_count: stats.review_count,
-      avg_rating: stats.avg_rating,
-      tours: toursWithStats, // Return the modified tours array
+      ...guideData
     }
   };
 };
