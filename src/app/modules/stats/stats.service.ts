@@ -1,70 +1,44 @@
-
-import { Contact } from "../contact/contact.model";
-import { User } from "../user/user.model"; // ✅ Uncommented
-
-export const getTouristStats = async (touristId: string) => {
-
-
-  return {
-    data: {
-      touristId
-    },
-  };
-};
-
-export const getGuideStats = async (guideId: string) => {
-
-
-  return {
-    data: {
-      guideId
-    },
-  };
-};
-
-
-export const getAdminStats = async () => {
+import { Address } from "../address/address.model";
+import { Availability } from "../availability/availability.model";
+import { Inspection } from "../inspection/inspection.model";
+import { User } from "../user/user.model"; 
+const getAdminStats = async () => {
   const now = new Date();
   
-  const sevenDaysAgo = new Date(now);
-  sevenDaysAgo.setDate(now.getDate() - 7);
-
   const thirtyDaysAgo = new Date(now);
   thirtyDaysAgo.setDate(now.getDate() - 30);
 
-  const totalInquiriesP = Contact.countDocuments();
-  const totalUsersP = User.countDocuments(); // ✅ Added
+  // 1. Total Counts
+  const totalUsersP = User.countDocuments();
+  const totalInspectionsP = Inspection.countDocuments();
+  const totalAddressesP = Address.countDocuments();
+  const totalAvailabilityP = Availability.countDocuments(); // Total days scheduled
 
-  // 2. Inquiry Breakdown
-  const productInquiriesP = Contact.countDocuments({ inquiryType: "PRODUCT" });
-  const generalInquiriesP = Contact.countDocuments({ inquiryType: "GENERAL" });
+  // 2. Inspection Breakdown by Status
+  const pendingInspectionsP = Inspection.countDocuments({ status: "Pending" });
+  const confirmedInspectionsP = Inspection.countDocuments({ status: "Confirmed" });
+  const completedInspectionsP = Inspection.countDocuments({ status: "Completed" });
+  const cancelledInspectionsP = Inspection.countDocuments({ status: "Cancelled" });
 
-  const newInquiriesLast7P = Contact.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
-  const newInquiriesLast30P = Contact.countDocuments({ createdAt: { $gte: thirtyDaysAgo } });
-  
-  // ✅ User Growth Metrics
-  const newUsersLast7P = User.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+  // 3. Growth Metrics (Last 30 Days)
   const newUsersLast30P = User.countDocuments({ createdAt: { $gte: thirtyDaysAgo } });
-
-
-
-  // 5. Recent Activity (Last 5)
-  const recentInquiriesP = Contact.find()
+  const newInspectionsLast30P = Inspection.countDocuments({ createdAt: { $gte: thirtyDaysAgo } });
+  const newAddressesLast30P = Address.countDocuments({ createdAt: { $gte: thirtyDaysAgo } });
+  
+  // 4. Recent Activity (Last 5)
+  const recentInspectionsP = Inspection.find()
     .sort({ createdAt: -1 })
     .limit(5)
-    .populate("products", "name basePrice") 
     .lean();
 
-
-  // ✅ Recent Users
   const recentUsersP = User.find()
     .sort({ createdAt: -1 })
     .limit(5)
-    .select("name email role createdAt") // Select safe fields only
+    .select("name email role createdAt") 
     .lean();
 
-  // 6. Inquiry Time-Series
-  const inquiryTimeSeriesP = Contact.aggregate([
+  // 5. Inspection Time-Series (Bookings over the last 30 days)
+  const inspectionTimeSeriesP = Inspection.aggregate([
     { $match: { createdAt: { $gte: thirtyDaysAgo } } },
     {
       $group: {
@@ -92,71 +66,22 @@ export const getAdminStats = async () => {
     { $sort: { date: 1 } },
   ]);
 
-  // 7. Top Products by Inquiry Count
-  const topProductsByInquiriesP = Contact.aggregate([
-    { $match: { inquiryType: "PRODUCT" } },
-    { $unwind: "$products" }, 
-    {
-      $group: {
-        _id: "$products",
-        inquiryCount: { $sum: 1 }, 
-      },
-    },
-    { $sort: { inquiryCount: -1 } },
-    { $limit: 6 },
-    {
-      $lookup: {
-        from: "products", 
-        localField: "_id",
-        foreignField: "_id",
-        as: "product",
-      },
-    },
-    { $unwind: { path: "$product", preserveNullAndEmptyArrays: true } },
-    {
-      $project: {
-        productId: "$_id",
-        inquiryCount: 1,
-        product: { 
-            name: "$product.name", 
-            basePrice: "$product.basePrice", 
-            slug: "$product.slug", 
-            image: { $arrayElemAt: ["$product.images", 0] } 
-        },
-      },
-    },
-  ]);
-
-  // Run all promises in parallel
+  // Run all promises in parallel for maximum speed
   const [
-    totalProducts,
-    totalCategories,
-    totalInquiries,
-    totalUsers, // ✅
-    productInquiries,
-    generalInquiries,
-    newProductsLast30,
-    newInquiriesLast7,
-    newInquiriesLast30,
-    newUsersLast7, // ✅
-    newUsersLast30, // ✅
-    lowStockProducts
+    totalUsers, totalInspections, totalAddresses, totalAvailability,
+    pendingInspections, confirmedInspections, completedInspections, cancelledInspections,
+    newUsersLast30, newInspectionsLast30, newAddressesLast30,
+    recentInspections, recentUsers,
+    inspectionTimeSeries
   ] = await Promise.all([
-    totalInquiriesP,
-    totalUsersP, // ✅
-    productInquiriesP,
-    generalInquiriesP,
-    newInquiriesLast7P,
-    newInquiriesLast30P,
-    newUsersLast7P, // ✅
-    newUsersLast30P, // ✅
-    recentInquiriesP,
-    recentUsersP, // ✅
-    inquiryTimeSeriesP,
-    topProductsByInquiriesP,
+    totalUsersP, totalInspectionsP, totalAddressesP, totalAvailabilityP,
+    pendingInspectionsP, confirmedInspectionsP, completedInspectionsP, cancelledInspectionsP,
+    newUsersLast30P, newInspectionsLast30P, newAddressesLast30P,
+    recentInspectionsP, recentUsersP,
+    inspectionTimeSeriesP
   ]);
 
-  // Prepare Inquiry time-series for charting
+  // Prepare Time-series data format for the frontend chart
   const days: { date: string; total: number }[] = [];
   const start = new Date(thirtyDaysAgo);
   for (let d = new Date(start); d <= now; d.setDate(d.getDate() + 1)) {
@@ -166,50 +91,45 @@ export const getAdminStats = async () => {
     });
   }
 
-  // Map results
-  const inquiryMap = new Map<string, number>();
+  const inspectionMap = new Map<string, number>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  inspectionTimeSeries.forEach((item: any) => {
+    inspectionMap.set(item.date.toISOString().slice(0, 10), item.total);
+  });
   
-  const inquirySeries = days.map((day) => ({ 
+  const inspectionSeries = days.map((day) => ({ 
     date: day.date, 
-    total: inquiryMap.get(day.date) || 0 
+    total: inspectionMap.get(day.date) || 0 
   }));
 
   return {
     data: {
       summary: {
-        totalProducts,
-        totalCategories,
-        totalInquiries,
-        totalUsers, // ✅ Added to summary
+        totalUsers,
+        totalInspections,
+        totalAddresses, // Acting as collected Leads
+        totalAvailability, // Total days plotted on calendar
       },
       counts: {
-        inquiries: {
-          product: productInquiries,
-          general: generalInquiries,
-        },
-        newProductsLast30,
-        newInquiriesLast7,
-        newInquiriesLast30,
-        newUsersLast7, // ✅ Added to counts
-        newUsersLast30, // ✅ Added to counts
-      },
-      alerts: {
-        lowStockProducts, 
+        newUsersLast30,
+        newInspectionsLast30,
+        newAddressesLast30,
+        inspectionStatus: {
+          pending: pendingInspections,
+          confirmed: confirmedInspections,
+          completed: completedInspections,
+          cancelled: cancelledInspections
+        }
       },
       recent: {
-        inquiries: null,
-        products: null,
-        users: null, // ✅ Added to recent activity
+        inspections: recentInspections,
+        users: recentUsers,
       },
-      inquirySeries, 
+      inspectionSeries, 
     },
   };
 };
 
-
-
 export const StatsService = {
-    getTouristStats,
-    getAdminStats,
-    getGuideStats
-}
+    getAdminStats
+};
