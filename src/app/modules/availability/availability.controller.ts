@@ -4,7 +4,9 @@ import { sendResponse } from "../../utils/sendResponse";
 import { AvailabilityService } from "./availability.service";
 
 const createAvailability = catchAsync(async (req: Request, res: Response) => {
-    const result = await AvailabilityService.createOrUpdateAvailability(req.body);
+    // Extract the array from the 'schedules' key
+    const payloadArray = req.body.schedules;
+    const result = await AvailabilityService.createOrUpdateAvailability(payloadArray);
     sendResponse(res, {
         statusCode: 201,
         success: true,

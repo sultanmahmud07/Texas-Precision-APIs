@@ -4,14 +4,19 @@ import { Availability } from "./availability.model";
 
 
 // For Admin: Create or Update a date's availability
-const createOrUpdateAvailability = async (payload: IAvailability) => {
-    // If the date exists, update it. If not, create it. (Upsert)
-    const result = await Availability.findOneAndUpdate(
-        { date: payload.date },
-        payload,
-        { new: true, upsert: true, runValidators: true }
+const createOrUpdateAvailability = async (payloads: IAvailability[]) => {
+    // Map through the array and perform an "upsert" for each date
+    const results = await Promise.all(
+        payloads.map(async (payload) => {
+            return await Availability.findOneAndUpdate(
+                { date: payload.date }, // Find by this date
+                payload,                // Update with this data
+                { new: true, upsert: true, runValidators: true } // Upsert options
+            );
+        })
     );
-    return result;
+
+    return results;
 };
 
 const getAllAvailability = async (query: Record<string, string>) => {
@@ -47,11 +52,11 @@ const getAvailableDates = async (startDate: string, endDate: string) => {
 // For Frontend Time Selection: Get slots for a specific date
 const getAvailabilityByDate = async (date: string) => {
     const availability = await Availability.findOne({ date }).select('-_id date timezone slots bookingMode');
-    
+
     if (!availability) {
         throw new Error("No available slots for this date");
     }
-    
+
     return availability;
 };
 
