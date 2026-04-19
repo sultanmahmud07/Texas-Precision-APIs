@@ -7,6 +7,7 @@ import { OtpRoutes } from "../modules/otp/otp.route"
 import { ReviewRoutes } from "../modules/review/review.route"
 import { AvailabilityRoutes } from "../modules/availability/availability.route"
 import { AddressRoutes } from "../modules/address/address.route"
+import { InspectionRoutes } from "../modules/inspection/inspection.route"
 
 export const router = Router()
 
@@ -30,6 +31,10 @@ const moduleRoutes = [
     {
         path: "/address",
         route: AddressRoutes
+    },
+    {
+        path: "/inspection",
+        route: InspectionRoutes
     },
     {
         path: "/otp",
