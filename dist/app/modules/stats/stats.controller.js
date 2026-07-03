@@ -13,24 +13,25 @@ exports.StatsController = void 0;
 const catchAsync_1 = require("../../utils/catchAsync");
 const sendResponse_1 = require("../../utils/sendResponse");
 const stats_service_1 = require("./stats.service");
+// import { JwtPayload } from "jsonwebtoken";
 const getTouristStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const decodeToken = req.user;
-    const stats = yield stats_service_1.StatsService.getTouristStats(decodeToken.userId);
+    // const decodeToken = req.user as JwtPayload
+    // const stats = await StatsService.getTouristStats(decodeToken.userId);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 200,
         success: true,
         message: "Sender stats fetched successfully",
-        data: stats,
+        data: {},
     });
 }));
 const getGuideStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const decodeToken = req.user;
-    const stats = yield stats_service_1.StatsService.getGuideStats(decodeToken.userId);
+    // const decodeToken = req.user as JwtPayload
+    // const stats = await StatsService.getGuideStats(decodeToken.userId);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 200,
         success: true,
         message: "Receiver stats fetched successfully",
-        data: stats,
+        data: {},
     });
 }));
 const getAdminStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {

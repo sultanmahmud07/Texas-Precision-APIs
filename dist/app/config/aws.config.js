@@ -44,6 +44,7 @@ contentType = "application/pdf") {
         };
     }
     catch (error) {
+        // eslint-disable-next-line no-console
         console.log(error);
         throw new AppError_1.default(401, `Error uploading file: ${error.message}`);
     }

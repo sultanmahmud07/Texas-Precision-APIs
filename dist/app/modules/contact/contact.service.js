@@ -39,6 +39,17 @@ const getContact = (query) => __awaiter(void 0, void 0, void 0, function* () {
         meta
     };
 });
+const getSingleContact = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const contact = yield contact_model_1.Contact.findById({ _id: id })
+        // .populate("products");
+        .populate({
+        path: "products",
+        select: "name slug images basePrice" // Only fetch these specific fields
+    });
+    return {
+        data: contact,
+    };
+});
 const deleteContact = (contactId) => __awaiter(void 0, void 0, void 0, function* () {
     const contact = yield contact_model_1.Contact.findById(contactId);
     if (!contact) {
@@ -50,5 +61,6 @@ const deleteContact = (contactId) => __awaiter(void 0, void 0, void 0, function*
 exports.ContactService = {
     createContact,
     getContact,
+    getSingleContact,
     deleteContact
 };

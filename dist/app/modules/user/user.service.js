@@ -33,7 +33,6 @@ const user_model_1 = require("./user.model");
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
 const user_constant_1 = require("./user.constant");
 const review_model_1 = require("../review/review.model");
-const tour_model_1 = require("../tour/tour.model");
 const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = payload, rest = __rest(payload, ["email", "password"]);
     const isExist = yield user_model_1.User.findOne({ email });
@@ -109,7 +108,7 @@ const getAllUsers = (query) => __awaiter(void 0, void 0, void 0, function* () {
     };
 });
 const getAllAdmin = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const queryBuilder = new QueryBuilder_1.QueryBuilder(user_model_1.User.find({ role: "ADMIN" }), query);
+    const queryBuilder = new QueryBuilder_1.QueryBuilder(user_model_1.User.find({ role: { $in: ["ADMIN", "SUPER_ADMIN"] } }), query);
     const users = yield queryBuilder
         .search(user_constant_1.userSearchableFields)
         .filter()
@@ -325,42 +324,10 @@ const getGuideDetails = (id) => __awaiter(void 0, void 0, void 0, function* () {
     if (!user || user.role !== 'GUIDE') {
         throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Guide not found.");
     }
-    // 2. Get Aggregated Review Statistics
-    const reviewStats = yield review_model_1.Review.aggregate([
-        // Filter reviews only for this guide
-        { $match: { guide: user._id } },
-        // Group by guide ID to calculate statistics
-        {
-            $group: {
-                _id: "$guide",
-                review_count: { $sum: 1 },
-                avg_rating: { $avg: "$rating" },
-            }
-        },
-        // Project to format the output
-        {
-            $project: {
-                _id: 0,
-                review_count: 1,
-                avg_rating: { $round: ["$avg_rating", 2] }
-            }
-        }
-    ]);
-    // Fetch all Tours authored by this Guide
-    const guideTours = yield tour_model_1.Tour.find({ author: user._id }).lean(); // Use .lean() for easier modification
-    // 3. Prepare Stats
-    const stats = reviewStats[0] || { review_count: 0, avg_rating: 0.0 };
-    // 4. Inject Stats into Each Tour's Author Field
-    // We map over guideTours and inject the stats into the author field.
-    const toursWithStats = guideTours.map(tour => {
-        // Create a populated-like author object that includes the aggregated stats
-        const authorWithStats = Object.assign(Object.assign({}, user.toObject()), { review_count: stats.review_count, avg_rating: stats.avg_rating });
-        return Object.assign(Object.assign({}, tour), { author: authorWithStats });
-    });
     // 5. Merge Data for the Guide Profile
     const guideData = user.toObject(); // Convert Mongoose document to plain object
     return {
-        data: Object.assign(Object.assign({}, guideData), { review_count: stats.review_count, avg_rating: stats.avg_rating, tours: toursWithStats })
+        data: Object.assign({}, guideData)
     };
 });
 const getMe = (userId) => __awaiter(void 0, void 0, void 0, function* () {

@@ -23,7 +23,7 @@ const storage = (0, multer_s3_1.default)({
             // eslint-disable-next-line no-useless-escape
             .replace(/[^a-z0-9\-]/g, ""); // only keep alphanumeric and -
         const uniqueFileName = 
-        // "amkov/" + 
+        // "texas-precision/" + 
         Math.random().toString(36).substring(2) +
             "-" +
             Date.now() +

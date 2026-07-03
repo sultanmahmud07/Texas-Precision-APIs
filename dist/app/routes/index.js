@@ -6,14 +6,11 @@ const auth_route_1 = require("../modules/auth/auth.route");
 const user_route_1 = require("../modules/user/user.route");
 const stats_route_1 = require("../modules/stats/stats.route");
 const contact_route_1 = require("../modules/contact/contact.route");
-const booking_route_1 = require("../modules/booking/booking.route");
-const payment_route_1 = require("../modules/payment/payment.route");
 const otp_route_1 = require("../modules/otp/otp.route");
 const review_route_1 = require("../modules/review/review.route");
-const message_route_1 = require("../modules/message/message.route");
-const blog_route_1 = require("../modules/blog/blog.route");
-const product_route_1 = require("../modules/product/product.route");
-const category_route_1 = require("../modules/category/category.route");
+const availability_route_1 = require("../modules/availability/availability.route");
+const address_route_1 = require("../modules/address/address.route");
+const inspection_route_1 = require("../modules/inspection/inspection.route");
 exports.router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -25,24 +22,20 @@ const moduleRoutes = [
         route: auth_route_1.AuthRoutes
     },
     {
-        path: "/category",
-        route: category_route_1.CategoryRoutes
-    },
-    {
-        path: "/product",
-        route: product_route_1.ProductRoutes
-    },
-    {
-        path: "/booking",
-        route: booking_route_1.BookingRoutes
+        path: "/availability",
+        route: availability_route_1.AvailabilityRoutes
     },
     {
         path: "/review",
         route: review_route_1.ReviewRoutes
     },
     {
-        path: "/payment",
-        route: payment_route_1.PaymentRoutes
+        path: "/address",
+        route: address_route_1.AddressRoutes
+    },
+    {
+        path: "/inspection",
+        route: inspection_route_1.InspectionRoutes
     },
     {
         path: "/otp",
@@ -55,15 +48,7 @@ const moduleRoutes = [
     {
         path: "/contact",
         route: contact_route_1.ContactRoutes
-    },
-    {
-        path: "/blog",
-        route: blog_route_1.BlogRoutes
-    },
-    {
-        path: "/message",
-        route: message_route_1.MessageRoutes
-    },
+    }
 ];
 moduleRoutes.forEach((route) => {
     exports.router.use(route.path, route.route);

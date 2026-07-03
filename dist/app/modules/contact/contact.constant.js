@@ -1,4 +1,4 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.contactSearchableFields = void 0;
-exports.contactSearchableFields = ["name", "email"];
+exports.contactSearchableFields = ["name", "email", "phone", "message", "inquiryType"];

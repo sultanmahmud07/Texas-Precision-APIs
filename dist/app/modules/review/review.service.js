@@ -1,4 +1,5 @@
 "use strict";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -15,12 +16,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReviewService = void 0;
 const review_model_1 = require("./review.model");
-const booking_model_1 = require("../booking/booking.model");
 const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const AppError_1 = __importDefault(require("../../errorHelpers/AppError"));
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
-const booking_interface_1 = require("../booking/booking.interface");
-const mongoose_1 = __importDefault(require("mongoose"));
 exports.ReviewService = {
     // async createReview(payload: any, userId: string) {
     //   const booking = await Booking.findById(payload.booking);
@@ -47,38 +45,7 @@ exports.ReviewService = {
     // },
     createReview(payload, userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            // 1. Start Mongoose Transaction
-            const session = yield mongoose_1.default.startSession();
-            session.startTransaction();
-            // Fetch Booking
-            const booking = yield booking_model_1.Booking.findById(payload.booking).session(session);
-            if (!booking) {
-                throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Booking not found");
-            }
-            // Authorization and Status Checks
-            if (booking.user._id.toString() !== userId) {
-                throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, "You cannot review this booking");
-            }
-            if (booking.status !== booking_interface_1.BOOKING_STATUS.COMPLETED) {
-                throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "You can only review completed tours");
-            }
-            // --- IMPORTANT: Check for existing review (prevent double review) ---
-            if (booking.review) {
-                throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "A review for this booking already exists.");
-            }
-            // 2. Create the Review document within the transaction
-            const reviewArray = yield review_model_1.Review.create([Object.assign(Object.assign({}, payload), { user: userId, 
-                    // Ensure you attach guide and tour IDs if they are not in the payload but needed on the Review model
-                    guide: booking.guide, tour: booking.tour })], { session });
-            const review = reviewArray[0];
-            // 3. Update the Booking document to link the new review ID
-            yield booking_model_1.Booking.findByIdAndUpdate(booking._id, { review: review._id }, // Add the review ID to the booking document
-            { new: true, runValidators: true, session });
-            // 4. (Optional but recommended) Update Tour Model average rating/count here
-            // 5. Commit Transaction
-            yield session.commitTransaction();
-            session.endSession();
-            return { data: review };
+            return { data: null };
         });
     },
     // Get all reviews for a tour (with filter, sort, pagination)

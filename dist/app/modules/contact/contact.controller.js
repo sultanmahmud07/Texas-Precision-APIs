@@ -19,14 +19,13 @@ const sendResponse_1 = require("../../utils/sendResponse");
 const contact_service_1 = require("./contact.service");
 // import { JwtPayload } from 'jsonwebtoken';
 // import { Types } from 'mongoose';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 exports.createContact = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const contactData = req.body;
     const contact = yield contact_service_1.ContactService.createContact(contactData);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_codes_1.default.CREATED,
         success: true,
-        message: 'Contact created successfully',
+        message: 'Inquiry submitted successfully',
         data: contact,
     });
 }));
@@ -39,6 +38,16 @@ const getContactByAdmin = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(v
         message: "Contact Retrieved Successfully By Admin",
         data: result.data,
         meta: result.meta
+    });
+}));
+const getSingleContact = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const result = yield contact_service_1.ContactService.getSingleContact(id);
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: 200,
+        success: true,
+        message: "Contact retrieved",
+        data: result.data,
     });
 }));
 const deleteContact = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -54,5 +63,6 @@ const deleteContact = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter
 exports.ContactController = {
     createContact: exports.createContact,
     getContactByAdmin,
+    getSingleContact,
     deleteContact
 };
