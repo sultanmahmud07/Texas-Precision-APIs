@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { StatsService } from "./stats.service";
-// import { JwtPayload } from "jsonwebtoken";
 
 const getTouristStats = catchAsync(async (req: Request, res: Response) => {
     // const decodeToken = req.user as JwtPayload
@@ -25,8 +24,6 @@ const getGuideStats = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-
-
 const getAdminStats = catchAsync(async (req: Request, res: Response) => {
     const stats = await StatsService.getAdminStats();
     sendResponse(res, {
@@ -36,7 +33,6 @@ const getAdminStats = catchAsync(async (req: Request, res: Response) => {
         data: stats,
     });
 });
-
 
 export const StatsController = {
     getTouristStats,
