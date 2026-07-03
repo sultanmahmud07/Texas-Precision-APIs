@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-// import { createGoogleCalendarEvent } from "../../config/googleCalendar";
-// import { convertTo24Hour } from "../../helpers/convertTo24Hour";
+import { createGoogleCalendarEvent } from "../../config/googleCalendar";
+import { convertTo24Hour } from "../../helpers/convertTo24Hour";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { sendEmail } from "../../utils/sendEmail";
 import { searchableFields } from "./inspection.constant";
@@ -12,7 +12,6 @@ const createInspection = async (payload: IInspection) => {
     const result = await Inspection.create(payload);
 
     // 2. Format the date beautifully (e.g., from "2026-04-28" to "Tuesday, April 28, 2026")
-    // Note: Adjust the timezone if necessary, but UTC works well for standard YYYY-MM-DD strings
     const dateObj = new Date(payload.scheduledDate);
     const formattedDate = dateObj.toLocaleDateString('en-US', {
         weekday: 'long',
@@ -27,8 +26,6 @@ const createInspection = async (payload: IInspection) => {
     const emailSubject = `Appointment Confirmed - ${serviceName} - ${formattedDate} at ${payload.scheduledTime}`;
 
     // 4. Send the confirmation email
-    // We do NOT use 'await' here so the API responds to the user instantly, 
-    // and the email sends silently in the background!
     sendEmail({
         to: payload.email,
         subject: emailSubject,
@@ -40,22 +37,22 @@ const createInspection = async (payload: IInspection) => {
             service: serviceName
         }
     }).catch(error => {
-        // Log the error but don't crash the user's booking experience
         console.error("Failed to send confirmation email:", error);
     });
-    // 1. Prepare ISO timestamps for Google Calendar
-    // Assuming appointments are 60 minutes as per your UI
-    // const startDateTime = new Date(`${payload.scheduledDate}T${convertTo24Hour(payload.scheduledTime)}:00`);
-    // const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
 
-    // // 2. Add to Google Calendar in the background
-    // createGoogleCalendarEvent({
-    //     summary: `Roofing Inspection: ${payload.firstName} ${payload.lastName}`,
-    //     location: `${payload.address}, ${payload.city}, ${payload.state} ${payload.zip}`,
-    //     description: `Customer Phone: ${payload.phone}\nNotes: ${payload.notes || 'None'}`,
-    //     startTime: startDateTime.toISOString(),
-    //     endTime: endDateTime.toISOString()
-    // }).catch(err => console.error("Google Calendar Sync Error:", err));
+    // 1. Prepare ISO timestamps for Google Calendar
+    const startDateTime = new Date(`${payload.scheduledDate}T${convertTo24Hour(payload.scheduledTime)}:00`);
+    const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
+
+    // 2. Add to Google Calendar in the background
+    createGoogleCalendarEvent({
+        summary: `Roofing Inspection: ${payload.firstName} ${payload.lastName}`,
+        location: `${payload.address}, ${payload.city}, ${payload.state} ${payload.zip}`,
+        description: `Customer Phone: ${payload.phone}\nNotes: ${payload.notes || 'None'}`,
+        startTime: startDateTime.toISOString(),
+        endTime: endDateTime.toISOString()
+    }).catch(err => console.error("Google Calendar Sync Error:", err));
+    
     return result;
 };
 
