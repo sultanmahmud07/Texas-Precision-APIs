@@ -23,7 +23,7 @@ app.use(cookieParser())
 app.use(express.json())
 app.set("trust proxy", 1)
 app.use(cors({
-    origin: ["http://localhost:3000", "http://52.55.98.134:3001", "https://52.55.98.134:3001", "https://dashboard.devshimul.com", "https://app.devshimul.com"],
+    origin: ["http://localhost:3000", "http://52.54.36.69:3000", "http://52.54.36.69:3001", "https://dashboard.devshimul.com", "https://app.devshimul.com"],
     // methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     credentials: true, 
   }))
