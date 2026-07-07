@@ -40,19 +40,41 @@ const createInspection = async (payload: IInspection) => {
         console.error("Failed to send confirmation email:", error);
     });
 
-    // 1. Prepare ISO timestamps for Google Calendar
-    const startDateTime = new Date(`${payload.scheduledDate}T${convertTo24Hour(payload.scheduledTime)}:00`);
-    const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
+    // 5. Send notification email to Admin
+    const adminEmailSubject = `New Inspection Scheduled - ${payload.firstName} ${payload.lastName} - ${serviceName}`;
+    sendEmail({
+        to: "marketing@txprecisionroofs.com",
+        subject: adminEmailSubject,
+        templateName: "adminInspectionNotification",
+        templateData: {
+            firstName: payload.firstName,
+            lastName: payload.lastName,
+            email: payload.email,
+            phone: payload.phone,
+            address: `${payload.address}, ${payload.city}, ${payload.state} ${payload.zip}`,
+            service: serviceName,
+            formattedDate: formattedDate,
+            time: payload.scheduledTime,
+            notes: payload.notes || "None",
+            sender: payload.sender
+        }
+    }).catch(error => {
+        console.error("Failed to send admin notification email:", error);
+    });
 
-    // 2. Add to Google Calendar in the background
-    createGoogleCalendarEvent({
-        summary: `Roofing Inspection: ${payload.firstName} ${payload.lastName}`,
-        location: `${payload.address}, ${payload.city}, ${payload.state} ${payload.zip}`,
-        description: `Customer Phone: ${payload.phone}\nNotes: ${payload.notes || 'None'}`,
-        startTime: startDateTime.toISOString(),
-        endTime: endDateTime.toISOString()
-    }).catch(err => console.error("Google Calendar Sync Error:", err));
-    
+    // Prepare ISO timestamps for Google Calendar
+    // const startDateTime = new Date(`${payload.scheduledDate}T${convertTo24Hour(payload.scheduledTime)}:00`);
+    // const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
+
+    // // Add to Google Calendar in the background
+    // createGoogleCalendarEvent({
+    //     summary: `Roofing Inspection: ${payload.firstName} ${payload.lastName}`,
+    //     location: `${payload.address}, ${payload.city}, ${payload.state} ${payload.zip}`,
+    //     description: `Customer Phone: ${payload.phone}\nNotes: ${payload.notes || 'None'}`,
+    //     startTime: startDateTime.toISOString(),
+    //     endTime: endDateTime.toISOString()
+    // }).catch(err => console.error("Google Calendar Sync Error:", err));
+
     return result;
 };
 
