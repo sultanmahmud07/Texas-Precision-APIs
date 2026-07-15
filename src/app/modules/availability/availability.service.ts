@@ -20,10 +20,10 @@ const createOrUpdateAvailability = async (payloads: IAvailability[]) => {
 };
 
 const getAllAvailability = async (query: Record<string, string>) => {
-    // You can search by date or service type
+    const today = new Date().toISOString().split('T')[0];
     const searchableFields = ['date', 'serviceType', 'timezone'];
 
-    const queryBuilder = new QueryBuilder(Availability.find(), query)
+    const queryBuilder = new QueryBuilder(Availability.find({ date: { $gte: today } }), query)
         .search(searchableFields)
         .filter()
         .sort()
@@ -41,16 +41,30 @@ const getAllAvailability = async (query: Record<string, string>) => {
     };
 };
 const getAvailableDates = async (startDate: string, endDate: string) => {
-    const dates = await Availability.find({
-        date: { $gte: startDate, $lte: endDate },
+    const today = new Date().toISOString().split('T')[0];
+    const finalStartDate = startDate && startDate > today ? startDate : today;
+
+    const query: Record<string, any> = {
+        date: { $gte: finalStartDate },
         $expr: { $gt: [{ $size: "$slots" }, 0] } // Only return dates that actually have slots left
-    }).select("date -_id"); // Return only the date string
+    };
+
+    if (endDate) {
+        query.date.$lte = endDate;
+    }
+
+    const dates = await Availability.find(query).select("date -_id"); // Return only the date string
 
     return dates.map(d => d.date); // Returns array like: ["2026-04-20", "2026-04-24"]
 };
 
 // For Frontend Time Selection: Get slots for a specific date
 const getAvailabilityByDate = async (date: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    if (date < today) {
+        throw new Error("No available slots for this date");
+    }
+
     const availability = await Availability.findOne({ date }).select('-_id date timezone slots bookingMode');
 
     if (!availability) {

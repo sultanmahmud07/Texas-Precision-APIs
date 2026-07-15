@@ -44,6 +44,17 @@ const updateInspection = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getBookedSlots = catchAsync(async (req: Request, res: Response) => {
+    const { date } = req.query;
+    const result = await InspectionService.getBookedSlots(date as string);
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Booked slots retrieved successfully",
+        data: result,
+    });
+});
+
 const deleteInspection = catchAsync(async (req: Request, res: Response) => {
     const result = await InspectionService.deleteInspection(req.params.id);
     sendResponse(res, {
@@ -59,5 +70,6 @@ export const InspectionController = {
     getAllInspections,
     getSingleInspection,
     updateInspection,
-    deleteInspection
+    deleteInspection,
+    getBookedSlots
 };

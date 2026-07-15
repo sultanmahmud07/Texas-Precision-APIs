@@ -110,6 +110,24 @@ const updateInspection = async (id: string, payload: Partial<IInspection>) => {
     return result;
 };
 
+const getBookedSlots = async (date?: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (date && date < today) {
+        return [];
+    }
+
+    const query: Record<string, any> = {
+        status: { $ne: 'Cancelled' },
+        scheduledDate: { $gte: today }
+    };
+    if (date) {
+        query.scheduledDate = date;
+    }
+    const result = await Inspection.find(query).select('scheduledDate scheduledTime');
+    return result;
+};
+
 const deleteInspection = async (id: string) => {
     const result = await Inspection.findByIdAndDelete(id);
     if (!result) throw new Error("Inspection record not found.");
@@ -121,5 +139,6 @@ export const InspectionService = {
     getAllInspections,
     getSingleInspection,
     updateInspection,
-    deleteInspection
+    deleteInspection,
+    getBookedSlots
 };

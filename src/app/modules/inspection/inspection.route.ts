@@ -14,6 +14,12 @@ router.post(
     InspectionController.createInspection
 );
 
+// PUBLIC: Get booked slots
+router.get(
+    "/booked-slots",
+    InspectionController.getBookedSlots
+);
+
 // ADMIN ONLY: Managing the booked inspections
 router.get("/", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), InspectionController.getAllInspections);
 router.get("/:id", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), InspectionController.getSingleInspection);
